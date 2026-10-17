@@ -1,0 +1,376 @@
+{
+  "tables": [
+    {
+      "table": "listing",
+      "uses": [
+        "create",
+        "read",
+        "update"
+      ],
+      "public": true,
+      "owns": true,
+      "columns": [
+        {
+          "name": "seller_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "seller_name",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "brand",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "model",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "price",
+          "type": "numeric",
+          "nullable": false
+        },
+        {
+          "name": "mileage_km",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "fuel",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "transmission",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "city",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "image_1",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "image_2",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "image_3",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        {
+          "name": "buyer_id",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "buyer_name",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "sold_at",
+          "type": "timestamp with time zone",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "listing_question",
+      "uses": [
+        "create",
+        "read",
+        "update"
+      ],
+      "public": true,
+      "columns": [
+        {
+          "name": "listing_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "asker_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "asker_name",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "body",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        {
+          "name": "answer_body",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "answer_by",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "answer_by_name",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "answered_at",
+          "type": "timestamp with time zone",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "listing_follow",
+      "uses": [
+        "create",
+        "read",
+        "delete"
+      ],
+      "owns": true,
+      "columns": [
+        {
+          "name": "listing_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "table": "chat_thread",
+      "uses": [
+        "create",
+        "read",
+        "update"
+      ],
+      "columns": [
+        {
+          "name": "listing_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "listing_title",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "listing_cover",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "buyer_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "buyer_name",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "seller_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "seller_name",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        {
+          "name": "last_message",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "last_message_at",
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        {
+          "name": "buyer_muted",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "seller_muted",
+          "type": "boolean",
+          "nullable": false
+        },
+        {
+          "name": "buyer_unread",
+          "type": "int",
+          "nullable": true
+        },
+        {
+          "name": "seller_unread",
+          "type": "int",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "car_brand",
+      "uses": [
+        "read"
+      ],
+      "public": true,
+      "columns": [
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "sort_order",
+          "type": "int",
+          "nullable": true
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "car_model",
+      "uses": [
+        "read"
+      ],
+      "public": true,
+      "columns": [
+        {
+          "name": "brand_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "sort_order",
+          "type": "int",
+          "nullable": true
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "user_rating",
+      "uses": [
+        "create",
+        "read"
+      ],
+      "public": true,
+      "columns": [
+        {
+          "name": "listing_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "rater_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "rater_name",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "rated_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "rated_role",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "stars",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "comment",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      ]
+    }
+  ]
+}
