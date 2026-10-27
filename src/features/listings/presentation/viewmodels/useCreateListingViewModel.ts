@@ -10,11 +10,15 @@ import { ListingRepository } from "../../domain/repositories/ListingRepository";
 
 // El formulario de publicación: guarda lo que se escribe y valida antes de
 // mandarlo al repositorio, para que la pantalla sea solo campos.
+//
+// Secuencia: al abrir, se piden las marcas al repositorio → elegir una marca
+// pide sus modelos → `submit` valida y le entrega la publicación al repositorio.
 export function useCreateListingViewModel() {
   const listings = useInject<ListingRepository>(TOKENS.ListingRepo);
   const vehicles = useInject<VehicleCatalogRepository>(TOKENS.VehicleRepo);
   const session = useSession();
 
+  // ── Estado que lee la pantalla ────────────────────────────
   // Marca y modelo se eligen del catálogo precargado, no se escriben.
   const [brands, setBrands] = useState<CarBrand[]>([]);
   const [models, setModels] = useState<CarModel[]>([]);
@@ -27,13 +31,29 @@ export function useCreateListingViewModel() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Cargas: aquí se llama al repositorio ──────────────────
+
+  const fetchBrands = async () => {
+    try {
+      const result = await vehicles.brands();
+      setBrands(result);
+    } catch {
+      setError("No se pudo cargar el catálogo de marcas.");
+    } finally {
+      setLoadingCatalog(false);
+    }
+  };
+
+  // Al abrir la pantalla: las marcas.
+  // (La regla de abajo no ve que el estado cambia después del `await`, no al
+  // instante; por eso se desactiva aquí.)
   useEffect(() => {
-    vehicles
-      .brands()
-      .then(setBrands)
-      .catch(() => setError("No se pudo cargar el catálogo de marcas."))
-      .finally(() => setLoadingCatalog(false));
-  }, [vehicles]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchBrands();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Acciones que llama la pantalla ────────────────────────
 
   // Cambiar de marca vacía el modelo: dejarlo puesto permitiría un «Renault Picanto».
   const selectBrand = async (selected: CarBrand) => {
@@ -42,7 +62,8 @@ export function useCreateListingViewModel() {
     setModels([]);
     setLoadingCatalog(true);
     try {
-      setModels(await vehicles.modelsOf(selected.id));
+      const result = await vehicles.modelsOf(selected.id);
+      setModels(result);
     } catch {
       setError("No se pudieron cargar los modelos de esa marca.");
     } finally {

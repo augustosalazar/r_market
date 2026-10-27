@@ -4,7 +4,7 @@ import { PaperProvider } from "react-native-paper";
 
 import { Formatters } from "@/src/core/utils/formatters";
 import { CarListing } from "@/src/features/listings/domain/entities/CarListing";
-import { ListingCard } from "@/src/features/listings/presentation/widgets/ListingCard";
+import { ListingCard } from "@/src/features/listings/presentation/components/ListingCard";
 
 // Un componente sin estado: recibe datos y funciones, y pinta. No hace falta
 // nada falso, ni contextos, ni repositorios.

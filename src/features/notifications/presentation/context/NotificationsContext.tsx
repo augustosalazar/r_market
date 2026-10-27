@@ -1,6 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo } from "react";
-
-import { useAsyncData } from "@/src/core/utils/useAsyncData";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
@@ -23,21 +21,59 @@ const NotificationsContext = createContext<NotificationsViewModel | undefined>(u
 
 // La bandeja de quien está dentro. Se resuscribe sola cuando cambia la sesión y
 // cancela la escucha al cerrarla: un socket vivo sin cancelar se queda abierto.
+//
+// Secuencia: cada vez que cambia quién está dentro, se le pide al repositorio
+// la bandeja → se guarda en el estado → se empieza a escuchar lo nuevo. Las
+// acciones (marcar leído) cambian el estado y luego avisan al repositorio.
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {
   const repo = useInject<NotificationRepository>(TOKENS.NotificationRepo);
   const userId = useSession().user?.userId ?? null;
-  const fetchInbox = useCallback(async () => (userId ? repo.inbox() : []), [repo, userId]);
-  // Sin bandeja no hay nada que mostrar; no es motivo para romper la app.
-  const { data, setData: setItems, loading, reload } = useAsyncData<AppNotification[]>(fetchInbox, []);
-  const items = userId ? data : NONE;
+
+  // ── Estado que leen las pantallas ─────────────────────────
+  const [inbox, setItems] = useState<AppNotification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const items = userId ? inbox : NONE;
+
+  // Número de turno de la última carga: si cambia la sesión a medias, la
+  // respuesta de un turno viejo no vale.
+  const loadTicket = useRef(0);
+
+  // ── Cargas: aquí se llama al repositorio ──────────────────
+
+  // Estable (useCallback): el contexto se reparte a toda la app, y una función
+  // nueva en cada render redibujaría a todos los que lo leen.
+  const fetchInbox = useCallback(async () => {
+    const id = ++loadTicket.current;
+    try {
+      const result = userId ? await repo.inbox() : [];
+      if (id === loadTicket.current) setItems(result);
+    } catch {
+      // Sin bandeja no hay nada que mostrar; no es motivo para romper la app.
+    } finally {
+      if (id === loadTicket.current) setLoading(false);
+    }
+  }, [repo, userId]);
+
+  // Al arrancar y cada vez que cambia quién está dentro.
+  // (La regla de abajo no ve que el estado cambia después del `await`, no al
+  // instante; por eso se desactiva aquí.)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchInbox();
+  }, [fetchInbox]);
 
   // Primero se lee y luego se escucha: el socket no reenvía lo que ya estaba.
   useEffect(() => {
     if (!userId) return;
     return repo.watch((n) => setItems((prev) => (prev.some((p) => p.id === n.id) ? prev : [n, ...prev])));
-  }, [repo, userId, setItems]);
+  }, [repo, userId]);
 
-  const refresh = useCallback(async () => reload(), [reload]);
+  // ── Acciones que llaman las pantallas ─────────────────────
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    await fetchInbox();
+  }, [fetchInbox]);
 
   const markRead = useCallback(
     async (n: AppNotification) => {

@@ -11,6 +11,10 @@ import { ChatRepository } from "../../domain/repositories/ChatRepository";
 
 // Un chat abierto. La regla propia está en `send`: el destinatario recibe aviso
 // salvo que haya silenciado el hilo (el «bloqueo» del requisito 8).
+//
+// Secuencia: al abrir, se pide al repositorio el hilo y sus mensajes → se
+// guardan en el estado → la pantalla se dibuja → se empieza a escuchar el
+// tiempo real. Enviar llama al repositorio y añade el mensaje al estado.
 export function useChatViewModel(threadId: string) {
   const chats = useInject<ChatRepository>(TOKENS.ChatRepo);
   const dispatcher = useInject<NotificationDispatcher>(TOKENS.NotificationDispatcher);
@@ -18,11 +22,16 @@ export function useChatViewModel(threadId: string) {
   const snackbar = useSnackbar();
   const myId = session.user?.userId ?? "";
 
+  // ── Estado que lee la pantalla ────────────────────────────
   const [thread, setThread] = useState<ChatThread | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+
+  // Cancela la escucha del tiempo real; `null` si no se está escuchando.
   const stopRef = useRef<(() => void) | null>(null);
+
+  // ── Tiempo real ───────────────────────────────────────────
 
   // Pinta un mensaje una sola vez: el mismo llega por el eco del socket y por la
   // respuesta de `send`, con la misma clave del servidor.
@@ -48,29 +57,43 @@ export function useChatViewModel(threadId: string) {
     );
   }, [append, chats, myId, threadId]);
 
+  // ── Cargas: aquí se llama al repositorio ──────────────────
+
+  // Marca el hilo como leído, trae el hilo y sus mensajes, y empieza a escuchar.
+  // `isActive` dice si la pantalla sigue abierta: si se cerró a medias, no se
+  // empieza a escuchar un hilo que ya nadie mira.
+  const fetchChat = async (isActive: () => boolean) => {
+    try {
+      await chats.markRead(threadId);
+      const t = await chats.threadById(threadId);
+      const loaded = await chats.messagesOf(threadId);
+      if (!isActive()) return;
+      setThread(t);
+      setMessages(loaded);
+      listen();
+    } catch (e) {
+      if (isActive()) snackbar(messageOf(e), { error: true });
+    } finally {
+      if (isActive()) setLoading(false);
+    }
+  };
+
+  // Al abrir la pantalla: el hilo y sus mensajes. Al cerrarla, se deja de escuchar.
+  // (La regla de abajo no ve que el estado cambia después del `await`, no al
+  // instante; por eso se desactiva aquí.)
   useEffect(() => {
     let active = true;
-    (async () => {
-      try {
-        await chats.markRead(threadId);
-        const t = await chats.threadById(threadId);
-        const loaded = await chats.messagesOf(threadId);
-        if (!active) return;
-        setThread(t);
-        setMessages(loaded);
-        listen();
-      } catch (e) {
-        if (active) snackbar(messageOf(e), { error: true });
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchChat(() => active);
     return () => {
       active = false;
       stopRef.current?.();
       stopRef.current = null;
     };
-  }, [chats, listen, snackbar, threadId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadId, myId]);
+
+  // ── Acciones que llama la pantalla ────────────────────────
 
   const send = async (text: string) => {
     const body = text.trim();

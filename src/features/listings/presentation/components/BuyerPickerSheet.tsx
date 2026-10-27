@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import { Divider, List, Text } from "react-native-paper";
 
-import { BottomSheet } from "@/src/core/widgets/BottomSheet";
+import { BottomSheet } from "@/src/core/components/BottomSheet";
 import { ChatThread } from "@/src/features/chat/domain/entities/Chat";
 
 // Lo que el vendedor decidió al cerrar la venta. Sin comprador, la publicación

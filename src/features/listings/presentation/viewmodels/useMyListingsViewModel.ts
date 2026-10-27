@@ -1,10 +1,9 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
 import { useSnackbar } from "@/src/core/feedback/SnackbarProvider";
 import { messageOf } from "@/src/core/utils/formatters";
-import { useAsyncData } from "@/src/core/utils/useAsyncData";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
 import { ChatRepository } from "@/src/features/chat/domain/repositories/ChatRepository";
 import { NotificationDispatcher } from "@/src/features/notifications/domain/repositories/NotificationRepository";
@@ -14,6 +13,10 @@ import { useFollows } from "../context/FollowsContext";
 import { notifyStatusChange } from "../listingNotices";
 
 // Lo mío: lo que vendo y lo que sigo (que es lo que me genera avisos).
+//
+// Secuencia: la pantalla llama a `refresh` cada vez que se enfoca → `refresh`
+// le pide al repositorio lo que vendo y lo que sigo → el resultado se guarda en
+// el estado → la pantalla se vuelve a dibujar.
 export function useMyListingsViewModel() {
   const listings = useInject<ListingRepository>(TOKENS.ListingRepo);
   const chats = useInject<ChatRepository>(TOKENS.ChatRepo);
@@ -22,21 +25,51 @@ export function useMyListingsViewModel() {
   const followIds = useFollows().ids;
   const snackbar = useSnackbar();
 
-  const fetchSelling = useCallback(async () => (userId ? listings.bySeller(userId) : []), [listings, userId]);
-  const sellingData = useAsyncData<CarListing[]>(fetchSelling, []);
-  const setSelling = sellingData.setData;
+  // ── Estado que lee la pantalla ────────────────────────────
+  const [selling, setSelling] = useState<CarListing[]>([]);
+  const [following, setFollowing] = useState<CarListing[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // La estrella se marca en el catálogo y en el detalle: la lista de seguidas se
-  // vuelve a pedir cada vez que cambia el conjunto compartido.
-  const fetchFollowing = useCallback(
-    async () => (userId && followIds.size > 0 ? listings.followedBy(userId) : []),
-    [listings, userId, followIds],
-  );
-  const followingData = useAsyncData<CarListing[]>(fetchFollowing, []);
+  // Números de turno de la última carga de cada lista: si cambia la sesión a
+  // medias, la respuesta de un turno viejo no vale.
+  const sellingTicket = useRef(0);
+  const followingTicket = useRef(0);
 
-  const selling = userId ? sellingData.data : [];
-  const following = userId ? followingData.data : [];
-  const loading = sellingData.loading;
+  // ── Cargas: aquí se llama al repositorio ──────────────────
+
+  const fetchSelling = useCallback(async () => {
+    const id = ++sellingTicket.current;
+    try {
+      const result = userId ? await listings.bySeller(userId) : [];
+      if (id === sellingTicket.current) setSelling(result);
+    } catch (e) {
+      if (id === sellingTicket.current) snackbar(messageOf(e), { error: true });
+    } finally {
+      if (id === sellingTicket.current) setLoading(false);
+    }
+  }, [listings, snackbar, userId]);
+
+  const fetchFollowing = useCallback(async () => {
+    const id = ++followingTicket.current;
+    try {
+      const result = userId && followIds.size > 0 ? await listings.followedBy(userId) : [];
+      if (id === followingTicket.current) setFollowing(result);
+    } catch (e) {
+      if (id === followingTicket.current) snackbar(messageOf(e), { error: true });
+    }
+  }, [followIds, listings, snackbar, userId]);
+
+  // ── Acciones que llama la pantalla ────────────────────────
+
+  // Estable (useCallback): la pantalla la llama desde `useFocusEffect`, y una
+  // función nueva en cada render la volvería a disparar sin parar. Cambia cuando
+  // cambia la sesión o lo que sigo (la estrella se marca en el catálogo y en el
+  // detalle), y entonces la pantalla vuelve a pedir.
+  const refresh = useCallback(() => {
+    setLoading(true);
+    fetchSelling();
+    fetchFollowing();
+  }, [fetchSelling, fetchFollowing]);
 
   const replace = (updated: CarListing) => setSelling((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
 
@@ -69,5 +102,13 @@ export function useMyListingsViewModel() {
     [chats],
   );
 
-  return { selling, following, loading, refresh: sellingData.reload, changeStatus, markSold, buyerCandidates };
+  return {
+    selling: userId ? selling : [],
+    following: userId ? following : [],
+    loading,
+    refresh,
+    changeStatus,
+    markSold,
+    buyerCandidates,
+  };
 }

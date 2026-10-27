@@ -5,8 +5,8 @@ import { ActivityIndicator, Badge, Button, Divider, HelperText, List, Text } fro
 
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Formatters } from "@/src/core/utils/formatters";
-import { CarPhoto } from "@/src/core/widgets/CarPhoto";
-import { EmptyState } from "@/src/core/widgets/EmptyState";
+import { CarPhoto } from "@/src/core/components/CarPhoto";
+import { EmptyState } from "@/src/core/components/EmptyState";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
 import { otherName } from "../../domain/entities/Chat";
 import { useChatsViewModel } from "../viewmodels/useChatsViewModel";

@@ -4,7 +4,7 @@ import { FlatList, StyleSheet } from "react-native";
 import { Avatar, Button, Divider, List, Text, useTheme } from "react-native-paper";
 
 import { Formatters } from "@/src/core/utils/formatters";
-import { EmptyState } from "@/src/core/widgets/EmptyState";
+import { EmptyState } from "@/src/core/components/EmptyState";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
 import { NotificationKind } from "../../domain/entities/AppNotification";
 import { useNotifications } from "../context/NotificationsContext";

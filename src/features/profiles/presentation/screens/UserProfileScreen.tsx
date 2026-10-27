@@ -5,12 +5,12 @@ import { ActivityIndicator, Avatar, Button, Card, List, Text } from "react-nativ
 
 import { Formatters, initialsOf } from "@/src/core/utils/formatters";
 import { CarListing, listingTitle } from "@/src/features/listings/domain/entities/CarListing";
-import { ListingCard } from "@/src/features/listings/presentation/widgets/ListingCard";
+import { ListingCard } from "@/src/features/listings/presentation/components/ListingCard";
 import { RootStackParamList } from "@/src/navigation/types";
 import { ratedRoleLabel } from "../../domain/entities/UserRating";
 import { PendingRating, useUserProfileViewModel } from "../viewmodels/useUserProfileViewModel";
-import { RateSheet } from "../widgets/RateSheet";
-import { StarRating } from "../widgets/StarRating";
+import { RateSheet } from "../components/RateSheet";
+import { StarRating } from "../components/StarRating";
 
 type Props = NativeStackScreenProps<RootStackParamList, "UserProfile">;
 

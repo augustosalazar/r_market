@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
-import { useAsyncData } from "@/src/core/utils/useAsyncData";
 import { useSnackbar } from "@/src/core/feedback/SnackbarProvider";
 import { messageOf } from "@/src/core/utils/formatters";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
@@ -15,40 +14,60 @@ import { RatingRepository } from "../../domain/repositories/RatingRepository";
 // **persona del perfil** en esa venta.
 export type PendingRating = { listing: CarListing; role: RatedRole };
 
+type Profile = { selling: CarListing[]; sold: CarListing[]; bought: CarListing[]; received: UserRating[] };
+
+const EMPTY_PROFILE: Profile = { selling: [], sold: [], bought: [], received: [] };
+
 // El perfil público: lo que vende, vendió y compró, y lo que opinan de ella. Se
 // mira sin sesión; calificar exige cuenta y una venta con esa persona.
+//
+// Secuencia: al abrir, se pide al repositorio todo el perfil → se guarda en el
+// estado → la pantalla se dibuja. Calificar llama al repositorio y actualiza
+// solo las calificaciones.
 export function useUserProfileViewModel(userId: string) {
   const listings = useInject<ListingRepository>(TOKENS.ListingRepo);
   const ratings = useInject<RatingRepository>(TOKENS.RatingRepo);
   const session = useSession();
   const snackbar = useSnackbar();
 
+  // ── Estado que lee la pantalla ────────────────────────────
+  const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { selling, sold, bought, received } = profile;
 
-  const fetchProfile = useCallback(async () => {
-    const [published, bought, received] = await Promise.all([
-      listings.bySeller(userId),
-      listings.purchasesOf(userId),
-      ratings.receivedBy(userId),
-    ]);
-    return {
-      selling: published.filter((l) => l.status !== "sold"),
-      sold: published.filter((l) => l.status === "sold"),
-      bought,
-      received,
-    };
-  }, [listings, ratings, userId]);
-  const { data, setData, loading, error, reload } = useAsyncData<{
-    selling: CarListing[];
-    sold: CarListing[];
-    bought: CarListing[];
-    received: UserRating[];
-  }>(fetchProfile, { selling: [], sold: [], bought: [], received: [] });
-  const { selling, sold, bought, received } = data;
+  // ── Cargas: aquí se llama al repositorio ──────────────────
 
+  const fetchProfile = async () => {
+    try {
+      const [published, purchases, opinions] = await Promise.all([
+        listings.bySeller(userId),
+        listings.purchasesOf(userId),
+        ratings.receivedBy(userId),
+      ]);
+      setProfile({
+        selling: published.filter((l) => l.status !== "sold"),
+        sold: published.filter((l) => l.status === "sold"),
+        bought: purchases,
+        received: opinions,
+      });
+    } catch (e) {
+      snackbar(messageOf(e), { error: true });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Al abrir la pantalla: el perfil completo.
+  // (La regla de abajo no ve que el estado cambia después del `await`, no al
+  // instante; por eso se desactiva aquí.)
   useEffect(() => {
-    if (error) snackbar(error, { error: true });
-  }, [error, snackbar]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // ── Lo que se calcula a partir del estado ─────────────────
 
   // El promedio, o `null` si nadie la ha calificado: no es lo mismo que un cero.
   const average = received.length === 0 ? null : received.reduce((s, r) => s + r.stars, 0) / received.length;
@@ -63,6 +82,13 @@ export function useUserProfileViewModel(userId: string) {
       ...bought.filter((l) => l.sellerId === me && !done.has(l.id)).map((listing) => ({ listing, role: "buyer" as const })),
     ];
   }, [bought, me, received, sold, userId]);
+
+  // ── Acciones que llama la pantalla ────────────────────────
+
+  const refresh = () => {
+    setLoading(true);
+    fetchProfile();
+  };
 
   const rate = async (p: PendingRating, stars: number, comment: string) => {
     if (!session.ensureLoggedIn()) return;
@@ -80,7 +106,7 @@ export function useUserProfileViewModel(userId: string) {
         comment: comment.trim(),
       });
       const updated = await ratings.receivedBy(userId);
-      setData((d) => ({ ...d, received: updated }));
+      setProfile((p) => ({ ...p, received: updated }));
       snackbar("Gracias: tu calificación ya está publicada.");
     } catch (e) {
       snackbar(messageOf(e), { error: true });
@@ -89,5 +115,5 @@ export function useUserProfileViewModel(userId: string) {
     }
   };
 
-  return { selling, sold, bought, received, loading, saving, average, pending, refresh: reload, rate };
+  return { selling, sold, bought, received, loading, saving, average, pending, refresh, rate };
 }

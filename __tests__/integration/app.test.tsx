@@ -6,8 +6,8 @@ import { DummyData } from "@/src/core/data/dummyData";
 import { createLocalContainer } from "@/src/core/di/localContainer";
 import LoginScreen from "@/src/features/auth/presentation/screens/LoginScreen";
 import MyListingsScreen from "@/src/features/listings/presentation/screens/MyListingsScreen";
-import { BrandStrip } from "@/src/features/listings/presentation/widgets/BrandStrip";
-import { ListingCard } from "@/src/features/listings/presentation/widgets/ListingCard";
+import { BrandStrip } from "@/src/features/listings/presentation/components/BrandStrip";
+import { ListingCard } from "@/src/features/listings/presentation/components/ListingCard";
 import { HomeTabKeys } from "@/src/navigation/RootNavigator";
 
 // La app entera —navegación, pantallas, view models y repositorios de verdad—

@@ -3,12 +3,12 @@ import React, { useCallback, useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, FAB, SegmentedButtons } from "react-native-paper";
 
-import { EmptyState } from "@/src/core/widgets/EmptyState";
+import { EmptyState } from "@/src/core/components/EmptyState";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
 import { useMyListingsViewModel } from "../viewmodels/useMyListingsViewModel";
-import { ListingCard } from "../widgets/ListingCard";
-import { StatusPicker } from "../widgets/StatusPicker";
-import { useSellSheet } from "../widgets/useSellSheet";
+import { ListingCard } from "../components/ListingCard";
+import { StatusPicker } from "../components/StatusPicker";
+import { useSellSheet } from "../components/useSellSheet";
 
 // Lo mío: lo que vendo, y lo que sigo (que es lo que me genera avisos).
 export default function MyListingsScreen() {

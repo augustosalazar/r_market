@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
-import { useAsyncData } from "@/src/core/utils/useAsyncData";
 import { useSnackbar } from "@/src/core/feedback/SnackbarProvider";
 import { messageOf } from "@/src/core/utils/formatters";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
@@ -18,6 +17,10 @@ import { notifyListing, notifyStatusChange } from "../listingNotices";
 
 // El detalle: ficha, preguntas públicas, seguir y chat privado. Aquí viven las
 // reglas de quién puede preguntar, quién responde y a quién se le avisa.
+//
+// Secuencia: al abrir, se piden la ficha y las preguntas al repositorio → se
+// guardan en el estado → la pantalla se dibuja. Cada acción (preguntar,
+// responder, cambiar estado…) llama al repositorio y actualiza el estado.
 export function useListingDetailViewModel(listingId: string) {
   const listings = useInject<ListingRepository>(TOKENS.ListingRepo);
   const qa = useInject<QaRepository>(TOKENS.QaRepo);
@@ -28,21 +31,45 @@ export function useListingDetailViewModel(listingId: string) {
   const snackbar = useSnackbar();
   const navigation = useNavigation();
 
+  // ── Estado que lee la pantalla ────────────────────────────
+  const [listing, setListing] = useState<CarListing | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
-  const fetchListing = useCallback(() => listings.byId(listingId), [listingId, listings]);
-  const fetchQuestions = useCallback(() => qa.forListing(listingId), [listingId, qa]);
-  const listingData = useAsyncData<CarListing | null>(fetchListing, null);
-  const questionData = useAsyncData<Question[]>(fetchQuestions, []);
-  const listing = listingData.data;
-  const setListing = listingData.setData;
-  const setQuestions = questionData.setData;
-  const loading = listingData.loading;
+  // ── Cargas: aquí se llama al repositorio ──────────────────
 
-  const loadError = listingData.error ?? questionData.error;
+  const fetchListing = async () => {
+    try {
+      const result = await listings.byId(listingId);
+      setListing(result);
+    } catch (e) {
+      snackbar(messageOf(e), { error: true });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchQuestions = async () => {
+    try {
+      const result = await qa.forListing(listingId);
+      setQuestions(result);
+    } catch (e) {
+      snackbar(messageOf(e), { error: true });
+    }
+  };
+
+  // Al abrir la pantalla: la ficha y sus preguntas.
+  // (La regla de abajo no ve que el estado cambia después del `await`, no al
+  // instante; por eso se desactiva aquí.)
   useEffect(() => {
-    if (loadError) snackbar(loadError, { error: true });
-  }, [loadError, snackbar]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchListing();
+    fetchQuestions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listingId]);
+
+  // ── Acciones que llama la pantalla ────────────────────────
 
   const isOwner = session.user != null && listing?.sellerId === session.user.userId;
 
@@ -170,14 +197,15 @@ export function useListingDetailViewModel(listingId: string) {
 
   return {
     listing,
-    questions: questionData.data,
+    questions,
     loading,
     sending,
     isOwner,
     isFollowing: follows.isFollowing(listingId),
     refresh: () => {
-      listingData.reload();
-      questionData.reload();
+      setLoading(true);
+      fetchListing();
+      fetchQuestions();
     },
     toggleFollow,
     ask,

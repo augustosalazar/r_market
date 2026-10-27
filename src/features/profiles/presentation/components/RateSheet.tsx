@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet } from "react-native";
 import { Button, Text, TextInput } from "react-native-paper";
 
-import { BottomSheet } from "@/src/core/widgets/BottomSheet";
+import { BottomSheet } from "@/src/core/components/BottomSheet";
 import { MAX_STARS, RatedRole, ratedRoleLabel } from "../../domain/entities/UserRating";
 import { StarPicker } from "./StarRating";
 

@@ -3,12 +3,12 @@ import React, { useLayoutEffect, useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Badge, Button, HelperText, IconButton, Searchbar } from "react-native-paper";
 
-import { EmptyState } from "@/src/core/widgets/EmptyState";
+import { EmptyState } from "@/src/core/components/EmptyState";
 import { isFilterEmpty } from "../../domain/entities/ListingFilter";
 import { useCatalogViewModel } from "../viewmodels/useCatalogViewModel";
-import { BrandStrip } from "../widgets/BrandStrip";
-import { FilterSheet } from "../widgets/FilterSheet";
-import { ListingCard } from "../widgets/ListingCard";
+import { BrandStrip } from "../components/BrandStrip";
+import { FilterSheet } from "../components/FilterSheet";
+import { ListingCard } from "../components/ListingCard";
 
 // El catálogo: la primera pantalla y la única que se ve sin sesión.
 export default function CatalogScreen() {

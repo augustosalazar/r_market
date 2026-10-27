@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit",
     "smoke": "node --env-file=.env -e \"process.env.ROBLE_BASE_URL=process.env.EXPO_PUBLIC_ROBLE_BASE_URL;process.env.ROBLE_CONTRACT_ID=process.env.EXPO_PUBLIC_ROBLE_CONTRACT_ID;import('./smoke.mjs')\"",
     "test:unit": "jest --ci __tests__/unit",
-    "test:widget": "jest --ci __tests__/widget",
+    "test:component": "jest --ci __tests__/component",
     "test:integration": "jest --ci __tests__/integration",
     "start:local": "EXPO_PUBLIC_DATA_SOURCE=local expo start"
   },

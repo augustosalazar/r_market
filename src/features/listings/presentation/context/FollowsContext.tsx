@@ -1,10 +1,9 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
 import { useSnackbar } from "@/src/core/feedback/SnackbarProvider";
 import { messageOf } from "@/src/core/utils/formatters";
-import { useAsyncData } from "@/src/core/utils/useAsyncData";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
 import { ListingRepository } from "../../domain/repositories/ListingRepository";
 
@@ -23,16 +22,22 @@ const FollowsContext = createContext<FollowsViewModel | undefined>(undefined);
 // Quién sigue qué, en un solo sitio. La estrella se toca en el catálogo y en el
 // detalle, y la lista «Lo mío → Siguiendo» la muestra: si cada pantalla guardara
 // su copia, discreparían.
+//
+// Secuencia: cada vez que cambia quién está dentro, se le piden al repositorio
+// sus seguidas → se guardan en el estado → las pantallas que lo leen se
+// redibujan. `toggle` llama al repositorio y anota el cambio.
 export function FollowsProvider({ children }: { children: React.ReactNode }) {
   const listings = useInject<ListingRepository>(TOKENS.ListingRepo);
   const session = useSession();
   const snackbar = useSnackbar();
   const userId = session.user?.userId ?? null;
-  const fetchIds = useCallback(
-    async () => (userId ? listings.followedIds(userId) : new Set<string>()),
-    [listings, userId],
-  );
-  const { data: fetched } = useAsyncData(fetchIds, new Set<string>());
+
+  // ── Estado ────────────────────────────────────────────────
+  // Lo que dijo el servidor.
+  const [fetched, setFetched] = useState<Set<string>>(EMPTY);
+  // Número de turno de la última carga: si cambia la sesión a medias, la
+  // respuesta de un turno viejo no vale.
+  const loadTicket = useRef(0);
 
   // Lo que se tocó aquí, encima de lo que dijo el servidor. Así la estrella no
   // se deshace si una lectura vieja llega tarde (por ejemplo, la que dispara
@@ -45,6 +50,29 @@ export function FollowsProvider({ children }: { children: React.ReactNode }) {
     local.changes.forEach((following, id) => (following ? merged.add(id) : merged.delete(id)));
     return merged;
   }, [fetched, local, userId]);
+
+  // ── Cargas: aquí se llama al repositorio ──────────────────
+
+  const fetchIds = async () => {
+    const id = ++loadTicket.current;
+    try {
+      const result = userId ? await listings.followedIds(userId) : EMPTY;
+      if (id === loadTicket.current) setFetched(result);
+    } catch {
+      // Sin la lista no se marca ninguna estrella; no es motivo para avisar.
+    }
+  };
+
+  // Al arrancar y cada vez que cambia quién está dentro.
+  // (La regla de abajo no ve que el estado cambia después del `await`, no al
+  // instante; por eso se desactiva aquí.)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchIds();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // ── Acciones ──────────────────────────────────────────────
 
   const { ensureWritableSession, currentUser } = session;
   const toggle = useCallback(

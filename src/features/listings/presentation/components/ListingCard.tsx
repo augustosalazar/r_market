@@ -3,7 +3,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Card, IconButton, Text, useTheme } from "react-native-paper";
 
-import { CarPhoto } from "@/src/core/widgets/CarPhoto";
+import { CarPhoto } from "@/src/core/components/CarPhoto";
 import { Formatters } from "@/src/core/utils/formatters";
 import { CarListing, listingCover, listingTitle, transmissionLabel } from "../../domain/entities/CarListing";
 import { StatusChip } from "./StatusChip";

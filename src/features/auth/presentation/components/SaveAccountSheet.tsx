@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet } from "react-native";
 import { Button, HelperText, Text, TextInput } from "react-native-paper";
 
-import { BottomSheet } from "@/src/core/widgets/BottomSheet";
+import { BottomSheet } from "@/src/core/components/BottomSheet";
 
 export type SaveAccountForm = { name: string; email: string; password: string; confirmation: string };
 

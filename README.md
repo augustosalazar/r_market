@@ -67,7 +67,7 @@ src/
     di/                 contenedor, tokens y appContainer (la raíz de composición)
     roble/              el cliente (uno solo), la config del .env y guardRoble
     feedback/           la barra de avisos (Snackbar)
-    utils/ widgets/     formatos, useAsyncData y piezas compartidas
+    utils/ components/  formatos y componentes compartidos
   navigation/           stack raíz + pestañas, rutas tipadas, navigationRef
   features/
     auth/               sesión, login, registro, invitado, guardar cuenta
@@ -87,7 +87,7 @@ features/<nombre>/
   data/
     datasources/    la interfaz y la implementación remota: solo hablan con Roble
     repositories/   uno por feature: convierte filas en entidades y traduce errores
-  presentation/   context/ o viewmodels/, screens/, widgets/
+  presentation/   context/ o viewmodels/, screens/, components/
 ```
 
 **Las llamadas a Roble viven solo en `data/datasources/`.** Lo único del paquete
@@ -133,7 +133,7 @@ memoria, que es lo único que cambia respecto a producción.
 | Carpeta | Qué prueba | Cómo se corre |
 |---|---|---|
 | `__tests__/unit/<feature>/` | view models y repositorios | `npm run test:unit` |
-| `__tests__/widget/<feature>/` | una pantalla o un componente suelto | `npm run test:widget` |
+| `__tests__/component/<feature>/` | una pantalla o un componente suelto | `npm run test:component` |
 | `__tests__/integration/` | la app entera, con `createLocalContainer` | `npm run test:integration` |
 
 `npm run test:ci` las corre todas. `__tests__/unit/sinRoble.test.ts` vigila la
@@ -149,10 +149,10 @@ regla: falla si una prueba usa el cliente de Roble, un `RemoteDataSource` o
 | `test/unit/auth/session_view_model_test.dart` | `unit/auth/SessionViewModel.test.tsx` | un view model: validaciones y estado, con repositorio falso |
 | `test/unit/auth/auth_repository_test.dart` | `unit/auth/AuthRepository.test.ts` | un repositorio: convertir filas y traducir errores, con fuente falsa |
 | `test/unit/listings/listing_repository_test.dart` | `unit/listings/ListingRepository.test.ts` | lo mismo con publicaciones: precio en texto, orden, un 404 |
-| `test/widget/core/missing_config_app_test.dart` | `widget/core/MissingConfigScreen.test.tsx` | lo que se ve sin `.env` |
-| `test/widget/listings/listing_card_test.dart` | `widget/listings/ListingCard.test.tsx` | un componente sin estado: datos y funciones, nada falso |
-| `test/widget/auth/login_page_test.dart` | `widget/auth/LoginScreen.test.tsx` | una pantalla con su view model: errores visibles |
-| `test/widget/listings/catalog_page_test.dart` | `widget/listings/CatalogScreen.test.tsx` | una pantalla que lista datos: el repositorio falso anota lo que le piden |
+| `test/widget/core/missing_config_app_test.dart` | `component/core/MissingConfigScreen.test.tsx` | lo que se ve sin `.env` |
+| `test/widget/listings/listing_card_test.dart` | `component/listings/ListingCard.test.tsx` | un componente sin estado: datos y funciones, nada falso |
+| `test/widget/auth/login_page_test.dart` | `component/auth/LoginScreen.test.tsx` | una pantalla con su view model: errores visibles |
+| `test/widget/listings/catalog_page_test.dart` | `component/listings/CatalogScreen.test.tsx` | una pantalla que lista datos: el repositorio falso anota lo que le piden |
 | `integration_test/app_test.dart` | `integration/app.test.tsx` | la app entera con los datos en memoria |
 | — | `unit/chat/ChatRepository.test.ts`, `unit/profiles/RatingRepository.test.ts`, `unit/core/formatters.test.ts` | extra: no están en f_market |
 
@@ -160,6 +160,9 @@ regla: falla si una prueba usa el cliente de Roble, un `RemoteDataSource` o
 
 | Flutter | React Native |
 |---|---|
+| *widget* (`StatelessWidget`, `StatefulWidget`) | *componente* (una función que devuelve JSX) |
+| carpeta `ui/widgets/` | carpeta `presentation/components/` |
+| *widget test* (`test/widget/`, `testWidgets`) | *component test* (`__tests__/component/`, `render` de Testing Library) |
 | `class FakeX extends Fake implements IX` | `fake<X>({ ... })` (`__tests__/support/fake.ts`): lo no escrito lanza diciendo su nombre |
 | `Get.put(SessionViewModel(fake))` | `renderHook(() => useSession(), { wrapper })` con el provider y un `Container` de falsos |
 | `GetMaterialApp(home: LaPagina())` | `renderScreen(LaPantalla, container)` (`__tests__/support/renderScreen.tsx`) |

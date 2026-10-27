@@ -6,16 +6,16 @@ import { ActivityIndicator, Avatar, Button, Divider, IconButton, List, Text, use
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Formatters, initialsOf } from "@/src/core/utils/formatters";
-import { CarPhoto } from "@/src/core/widgets/CarPhoto";
+import { CarPhoto } from "@/src/core/components/CarPhoto";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
-import { DisplayNameSheet } from "@/src/features/auth/presentation/widgets/DisplayNameSheet";
-import { QuestionList } from "@/src/features/qa/presentation/widgets/QuestionList";
+import { DisplayNameSheet } from "@/src/features/auth/presentation/components/DisplayNameSheet";
+import { QuestionList } from "@/src/features/qa/presentation/components/QuestionList";
 import { RootStackParamList } from "@/src/navigation/types";
 import { CarListing, fuelLabel, listingCover, listingTitle, transmissionLabel } from "../../domain/entities/CarListing";
 import { useListingDetailViewModel } from "../viewmodels/useListingDetailViewModel";
-import { StatusChip } from "../widgets/StatusChip";
-import { StatusPicker } from "../widgets/StatusPicker";
-import { useSellSheet } from "../widgets/useSellSheet";
+import { StatusChip } from "../components/StatusChip";
+import { StatusPicker } from "../components/StatusPicker";
+import { useSellSheet } from "../components/useSellSheet";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ListingDetail">;
 

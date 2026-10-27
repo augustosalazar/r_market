@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ChoiceChips } from "@/src/core/widgets/ChoiceChips";
+import { ChoiceChips } from "@/src/core/components/ChoiceChips";
 import { LISTING_STATUSES, ListingStatus, statusLabel } from "../../domain/entities/CarListing";
 
 // Los cuatro estados como chips. Lo usa el dueño en el detalle y en «Lo mío».

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet } from "react-native";
 import { Button, HelperText, Text, TextInput } from "react-native-paper";
 
-import { BottomSheet } from "@/src/core/widgets/BottomSheet";
+import { BottomSheet } from "@/src/core/components/BottomSheet";
 
 // Pide a un invitado con qué nombre firmar. Se pregunta una sola vez y justo
 // antes de su primera pregunta, no al entrar: pedir datos a quien todavía está

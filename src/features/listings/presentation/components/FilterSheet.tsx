@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text, TextInput } from "react-native-paper";
 
-import { BottomSheet } from "@/src/core/widgets/BottomSheet";
-import { ChoiceChips } from "@/src/core/widgets/ChoiceChips";
+import { BottomSheet } from "@/src/core/components/BottomSheet";
+import { ChoiceChips } from "@/src/core/components/ChoiceChips";
 import { emptyFilter, ListingFilter } from "../../domain/entities/ListingFilter";
 
 const numberOrNull = (text: string) => {

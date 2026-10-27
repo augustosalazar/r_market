@@ -4,10 +4,10 @@ import { ScrollView, StyleSheet } from "react-native";
 import { Avatar, Button, Card, Dialog, Portal, Text } from "react-native-paper";
 
 import { initialsOf } from "@/src/core/utils/formatters";
-import { EmptyState } from "@/src/core/widgets/EmptyState";
+import { EmptyState } from "@/src/core/components/EmptyState";
 import { useFollows } from "@/src/features/listings/presentation/context/FollowsContext";
 import { useSession } from "../context/SessionContext";
-import { SaveAccountForm, SaveAccountSheet } from "../widgets/SaveAccountSheet";
+import { SaveAccountForm, SaveAccountSheet } from "../components/SaveAccountSheet";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();

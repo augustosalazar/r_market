@@ -7,7 +7,7 @@ import { CarListing } from "@/src/features/listings/domain/entities/CarListing";
 import { ListingFilter } from "@/src/features/listings/domain/entities/ListingFilter";
 import { ListingRepository } from "@/src/features/listings/domain/repositories/ListingRepository";
 import CatalogScreen from "@/src/features/listings/presentation/screens/CatalogScreen";
-import { BrandStrip } from "@/src/features/listings/presentation/widgets/BrandStrip";
+import { BrandStrip } from "@/src/features/listings/presentation/components/BrandStrip";
 import { VehicleCatalogRepository } from "@/src/features/vehicles/domain/repositories/VehicleCatalogRepository";
 import { fake } from "@/__tests__/support/fake";
 import { renderScreen } from "@/__tests__/support/renderScreen";

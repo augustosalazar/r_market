@@ -3,8 +3,8 @@ import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Avatar, Button, Card, HelperText, Text, TextInput } from "react-native-paper";
 
-import { ChoiceChips } from "@/src/core/widgets/ChoiceChips";
-import { SelectField } from "@/src/core/widgets/SelectField";
+import { ChoiceChips } from "@/src/core/components/ChoiceChips";
+import { SelectField } from "@/src/core/components/SelectField";
 import { useSnackbar } from "@/src/core/feedback/SnackbarProvider";
 import { FUEL_TYPES, fuelLabel, TRANSMISSION_TYPES, transmissionLabel } from "../../domain/entities/CarListing";
 import { useCreateListingViewModel } from "../viewmodels/useCreateListingViewModel";
